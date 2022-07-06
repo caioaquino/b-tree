@@ -1,8 +1,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#define t 2
+#define t 3
 #define VALOR_INVALIDO -2147483648
 
 typedef struct ArvoreB
@@ -19,12 +20,14 @@ void BTreeSplitChild(ArvoreB *x, int i, ArvoreB *y);
 void BTreeInsertNonFull(ArvoreB *x, int k);
 void imprimirArvore(ArvoreB *x);
 ArvoreB *BTreeSearch(ArvoreB *x, int k);
-void BTreeDelete(ArvoreB *x, int k);
-void BTreeDeleteKey(ArvoreB *x, ArvoreB *node, int key);
+void BTreeDelete(ArvoreB **x, int k);
+void BTreeDeleteKey(ArvoreB **raiz, ArvoreB *node, int key);
 int BtreeFindKey(ArvoreB *x, int k);
+void finalizaArvore(ArvoreB *x, FILE *saida);
+
 void inicializarArvore(ArvoreB **x)
 {
-    ArvoreB *no = malloc(sizeof(ArvoreB *));
+    ArvoreB *no = malloc(sizeof(ArvoreB));
     no->qtdChaves = 0;
     no->folha = true;
     *x = no;
@@ -32,12 +35,12 @@ void inicializarArvore(ArvoreB **x)
 
 void BTreeInsert(ArvoreB **x, int k)
 {
+
     ArvoreB *r = (*x);
 
-    printf("%d\n", r->qtdChaves);
     if (r->qtdChaves == 2 * t - 1)
     {
-        ArvoreB *s = malloc(sizeof(ArvoreB *));
+        ArvoreB *s = (ArvoreB *)malloc(sizeof(ArvoreB));
         *x = s;
         s->qtdChaves = 0;
         s->folha = false;
@@ -53,7 +56,7 @@ void BTreeInsert(ArvoreB **x, int k)
 
 void BTreeSplitChild(ArvoreB *x, int i, ArvoreB *y)
 {
-    ArvoreB *z = (ArvoreB *)malloc(sizeof(ArvoreB *)); // aloca no
+    ArvoreB *z = (ArvoreB *)malloc(sizeof(ArvoreB)); // aloca no
     z->folha = y->folha;
     z->qtdChaves = t - 1;
     int j;
@@ -123,7 +126,7 @@ void imprimirArvore(ArvoreB *x)
     {
         for (i = 0; i < x->qtdChaves; i++)
         {
-            printf("%d ", x->chaves[i]);
+            printf("%d\n", x->chaves[i]);
         }
         if (!x->folha)
         {
@@ -134,6 +137,26 @@ void imprimirArvore(ArvoreB *x)
         }
     }
 }
+
+void finalizaArvore(ArvoreB *x, FILE *saida)
+{
+    int i;
+    if (x)
+    {
+        for (i = 0; i < x->qtdChaves; i++)
+        {
+            fprintf(saida, "%i\n", x->chaves[i]);
+        }
+        if (!x->folha)
+        {
+            for (i = 0; i < x->qtdChaves + 1; i++)
+            {
+                imprimirArvore(x->filhos[i]);
+            }
+        }
+    }
+}
+
 ArvoreB *BTreeSearch(ArvoreB *x, int k)
 {
     if (!x)
@@ -154,7 +177,7 @@ ArvoreB *BTreeSearch(ArvoreB *x, int k)
         return BTreeSearch(x->filhos[i], k);
 }
 
-void BTreeDeleteKey(ArvoreB *raiz, ArvoreB *node, int key)
+void BTreeDeleteKey(ArvoreB **raiz, ArvoreB *node, int key)
 {
     int position = BtreeFindKey(node, key);
     if (position != VALOR_INVALIDO)
@@ -255,9 +278,9 @@ void BTreeDeleteKey(ArvoreB *raiz, ArvoreB *node, int key)
             node->qtdChaves--;
             if (node->qtdChaves == 0)
             {
-                if (node == raiz)
+                if (node == (*raiz))
                 {
-                    raiz = node->filhos[0];
+                    *raiz = node->filhos[0];
                 }
                 node = node->filhos[0];
             }
@@ -368,9 +391,9 @@ void BTreeDeleteKey(ArvoreB *raiz, ArvoreB *node, int key)
                 left->qtdChaves += right->qtdChaves;
                 if (node->qtdChaves == 0)
                 {
-                    if (node == raiz)
+                    if (node == (*raiz))
                     {
-                        raiz = node->filhos[0];
+                        *raiz = node->filhos[0];
                     }
                     node = node->filhos[0];
                 }
@@ -381,9 +404,9 @@ void BTreeDeleteKey(ArvoreB *raiz, ArvoreB *node, int key)
     }
 }
 
-void BTreeDelete(ArvoreB *x, int k)
+void BTreeDelete(ArvoreB **x, int k)
 {
-    ArvoreB *s = BTreeSearch(x, k);
+    ArvoreB *s = BTreeSearch((*x), k);
     if (s)
         BTreeDeleteKey(x, s, k);
 }
@@ -400,19 +423,44 @@ int BtreeFindKey(ArvoreB *x, int k)
     }
     return VALOR_INVALIDO;
 }
+#define MAX_LINE_LENGTH 1000
 
-int main()
+int main(int argc, char *argv[])
 {
+    // Recebe os parâmeros de entrada e saída de arquivos
+    FILE *entrada, *saida;
+    entrada = fopen(argv[1], "rt");
+    saida = fopen(argv[2], "w");
+    char input[100];
+    char operacao[100];
+    int chave;
+
     ArvoreB *raiz;
     inicializarArvore(&raiz);
-    BTreeInsert(&raiz, 10);
-    BTreeInsert(&raiz, 20);
-    BTreeInsert(&raiz, 30);
-    BTreeInsert(&raiz, 40);
-    imprimirArvore(raiz);
-    BTreeDelete(&raiz, 40);
 
-    imprimirArvore(raiz);
-
+    while (true)
+    {
+        if (fgets(input, sizeof input, entrada) != NULL)
+        {
+            sscanf(input, "%99s%d", operacao, &chave);
+            if (strcmp(operacao, "insere") == 0)
+            {
+                BTreeInsert(&raiz, chave);
+            }
+            else if (strcmp(operacao, "remove") == 0)
+            {
+                BTreeDelete(&raiz, chave);
+            }
+            else if (strcmp(operacao, "imprime") == 0)
+            {
+                imprimirArvore(raiz);
+            }
+            else if (strcmp(operacao, "fim") == 0)
+            {
+                finalizaArvore(raiz, saida);
+                break;
+            }
+        }
+    }
     return 0;
 }
