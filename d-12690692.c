@@ -183,31 +183,31 @@ ArvoreB *BTreeSearch(ArvoreB *x, int k)
         return BTreeSearch(x->filhos[i], k);
 }
 
-void BTreeDeleteKey(ArvoreB **raiz, ArvoreB *node, int key)
+void BTreeDeleteKey(ArvoreB **raiz, ArvoreB *no, int chave)
 { // DELETA UMA CHAVE DA ARVORE B
-    int position = BtreeFindKey(node, key);
+    int position = BtreeFindKey(no, chave);
     if (position != VALOR_INVALIDO)
     {
-        if (node->folha)
+        if (no->folha)
         {
-            int itr = 0;
-            for (itr = 0; itr < node->qtdChaves && node->chaves[itr] != key; itr++)
+            int contador = 0;
+            for (contador = 0; contador < no->qtdChaves && no->chaves[contador] != chave; contador++)
             {
             };
-            for (; itr < node->qtdChaves; itr++)
+            for (; contador < no->qtdChaves; contador++)
             {
-                if (itr != (2 * t) - 2)
+                if (contador != (2 * t) - 2)
                 {
-                    node->chaves[itr] = node->chaves[itr + 1];
+                    no->chaves[contador] = no->chaves[contador + 1];
                 }
             }
-            node->qtdChaves--;
+            no->qtdChaves--;
             return;
         }
-        if (!node->folha)
+        if (!no->folha)
         {
 
-            ArvoreB *prd = node->filhos[position];
+            ArvoreB *prd = no->filhos[position];
             int predKey = 0;
             if (prd->qtdChaves >= t)
             {
@@ -215,7 +215,6 @@ void BTreeDeleteKey(ArvoreB **raiz, ArvoreB *node, int key)
                 {
                     if (prd->folha)
                     {
-                        // System.out.println(prd->qtdChaves);
                         predKey = prd->chaves[prd->qtdChaves - 1];
                         break;
                     }
@@ -225,88 +224,88 @@ void BTreeDeleteKey(ArvoreB **raiz, ArvoreB *node, int key)
                     }
                 }
                 BTreeDeleteKey(raiz, prd, predKey);
-                node->chaves[position] = predKey;
+                no->chaves[position] = predKey;
                 return;
             }
 
-            ArvoreB *next_node = node->filhos[position + 1];
-            if (next_node->qtdChaves >= t)
+            ArvoreB *proximoNo = no->filhos[position + 1];
+            if (proximoNo->qtdChaves >= t)
             {
-                int nextKey = next_node->chaves[0];
-                if (!next_node->folha)
+                int proximaChave = proximoNo->chaves[0];
+                if (!proximoNo->folha)
                 {
-                    next_node = next_node->filhos[0];
+                    proximoNo = proximoNo->filhos[0];
                     for (;;)
                     {
-                        if (next_node->folha)
+                        if (proximoNo->folha)
                         {
-                            nextKey = next_node->chaves[next_node->qtdChaves - 1];
+                            proximaChave = proximoNo->chaves[proximoNo->qtdChaves - 1];
                             break;
                         }
                         else
                         {
-                            next_node = next_node->filhos[next_node->qtdChaves];
+                            proximoNo = proximoNo->filhos[proximoNo->qtdChaves];
                         }
                     }
                 }
-                BTreeDeleteKey(raiz, next_node, nextKey);
-                node->chaves[position] = nextKey;
+                BTreeDeleteKey(raiz, proximoNo, proximaChave);
+                no->chaves[position] = proximaChave;
                 return;
             }
 
-            int tmp = prd->qtdChaves + 1;
-            prd->chaves[prd->qtdChaves++] = node->chaves[position];
-            for (int itr = 0, jtr = prd->qtdChaves; itr < next_node->qtdChaves; itr++)
+            int temp = prd->qtdChaves + 1;
+            prd->chaves[prd->qtdChaves++] = no->chaves[position];
+            for (int contador = 0, contadorJ = prd->qtdChaves; contador < proximoNo->qtdChaves; contador++)
             {
-                prd->chaves[jtr++] = next_node->chaves[itr];
+                prd->chaves[contadorJ++] = proximoNo->chaves[contador];
                 prd->qtdChaves++;
             }
-            for (int itr = 0; itr < next_node->qtdChaves + 1; itr++)
+            for (int contador = 0; contador < proximoNo->qtdChaves + 1; contador++)
             {
-                prd->filhos[tmp++] = next_node->filhos[itr];
+                prd->filhos[temp++] = proximoNo->filhos[contador];
             }
 
-            node->filhos[position] = prd;
-            for (int itr = position; itr < node->qtdChaves; itr++)
+            no->filhos[position] = prd;
+            for (int contador = position; contador < no->qtdChaves; contador++)
             {
-                if (itr != 2 * t - 2)
+                if (contador != 2 * t - 2)
                 {
-                    node->chaves[itr] = node->chaves[itr + 1];
+                    no->chaves[contador] = no->chaves[contador + 1];
                 }
             }
-            for (int itr = position + 1; itr < node->qtdChaves + 1; itr++)
+            for (int contador = position + 1; contador < no->qtdChaves + 1; contador++)
             {
-                if (itr != 2 * t - 1)
+                if (contador != 2 * t - 1)
                 {
-                    node->filhos[itr] = node->filhos[itr + 1];
+                    no->filhos[contador] = no->filhos[contador + 1];
                 }
             }
-            node->qtdChaves--;
-            if (node->qtdChaves == 0)
+            no->qtdChaves--;
+            if (no->qtdChaves == 0)
             {
-                if (node == (*raiz))
+                if (no == (*raiz))
                 {
-                    *raiz = node->filhos[0];
+                    *raiz = no->filhos[0];
                 }
-                node = node->filhos[0];
+                no = no->filhos[0];
             }
-            BTreeDeleteKey(raiz, prd, key);
+            BTreeDeleteKey(raiz, prd, chave);
             return;
         }
     }
     else
     {
-        for (position = 0; position < node->qtdChaves; position++)
+        for (position = 0; position < no->qtdChaves; position++)
         {
-            if (node->chaves[position] > key)
+            if (no->chaves[position] > chave)
             {
                 break;
             }
         }
-        ArvoreB *tmp = node->filhos[position];
-        if (tmp->qtdChaves >= t)
+        ArvoreB *temp = no->filhos[position];
+        if (temp->qtdChaves >= t)
         {
-            BTreeDeleteKey(raiz, tmp, key);
+            BTreeDeleteKey(raiz, temp, chave);
             return;
         }
         if (true)
@@ -314,96 +313,96 @@ void BTreeDeleteKey(ArvoreB **raiz, ArvoreB *node, int key)
             ArvoreB *nd = NULL;
             int divider = -1;
 
-            if (position != node->qtdChaves && node->filhos[position + 1]->qtdChaves >= t)
+            if (position != no->qtdChaves && no->filhos[position + 1]->qtdChaves >= t)
             {
-                divider = node->chaves[position];
-                nd = node->filhos[position + 1];
-                node->chaves[position] = nd->chaves[0];
-                tmp->chaves[tmp->qtdChaves++] = divider;
-                tmp->filhos[tmp->qtdChaves] = nd->filhos[0];
-                for (int itr = 1; itr < nd->qtdChaves; itr++)
+                divider = no->chaves[position];
+                nd = no->filhos[position + 1];
+                no->chaves[position] = nd->chaves[0];
+                temp->chaves[temp->qtdChaves++] = divider;
+                temp->filhos[temp->qtdChaves] = nd->filhos[0];
+                for (int contador = 1; contador < nd->qtdChaves; contador++)
                 {
-                    nd->chaves[itr - 1] = nd->chaves[itr];
+                    nd->chaves[contador - 1] = nd->chaves[contador];
                 }
-                for (int itr = 1; itr <= nd->qtdChaves; itr++)
+                for (int contador = 1; contador <= nd->qtdChaves; contador++)
                 {
-                    nd->filhos[itr - 1] = nd->filhos[itr];
+                    nd->filhos[contador - 1] = nd->filhos[contador];
                 }
                 nd->qtdChaves--;
-                BTreeDeleteKey(raiz, tmp, key);
+                BTreeDeleteKey(raiz, temp, chave);
                 return;
             }
-            else if (position != 0 && node->filhos[position - 1]->qtdChaves >= t)
+            else if (position != 0 && no->filhos[position - 1]->qtdChaves >= t)
             {
 
-                divider = node->chaves[position - 1];
-                nd = node->filhos[position - 1];
-                node->chaves[position - 1] = nd->chaves[nd->qtdChaves - 1];
+                divider = no->chaves[position - 1];
+                nd = no->filhos[position - 1];
+                no->chaves[position - 1] = nd->chaves[nd->qtdChaves - 1];
                 ArvoreB *child = nd->filhos[nd->qtdChaves];
                 nd->qtdChaves--;
 
-                for (int itr = tmp->qtdChaves; itr > 0; itr--)
+                for (int contador = temp->qtdChaves; contador > 0; contador--)
                 {
-                    tmp->chaves[itr] = tmp->chaves[itr - 1];
+                    temp->chaves[contador] = temp->chaves[contador - 1];
                 }
-                tmp->chaves[0] = divider;
-                for (int itr = tmp->qtdChaves + 1; itr > 0; itr--)
+                temp->chaves[0] = divider;
+                for (int contador = temp->qtdChaves + 1; contador > 0; contador--)
                 {
-                    tmp->filhos[itr] = tmp->filhos[itr - 1];
+                    temp->filhos[contador] = temp->filhos[contador - 1];
                 }
-                tmp->filhos[0] = child;
-                tmp->qtdChaves++;
-                BTreeDeleteKey(raiz, tmp, key);
+                temp->filhos[0] = child;
+                temp->qtdChaves++;
+                BTreeDeleteKey(raiz, temp, chave);
                 return;
             }
             else
             {
                 ArvoreB *left = NULL;
                 ArvoreB *right = NULL;
-                bool is_last = false;
-                if (position != node->qtdChaves)
+                bool ehUltimo = false;
+                if (position != no->qtdChaves)
                 {
-                    divider = node->chaves[position];
-                    left = node->filhos[position];
-                    right = node->filhos[position + 1];
+                    divider = no->chaves[position];
+                    left = no->filhos[position];
+                    right = no->filhos[position + 1];
                 }
                 else
                 {
-                    divider = node->chaves[position - 1];
-                    right = node->filhos[position];
-                    left = node->filhos[position - 1];
-                    is_last = true;
+                    divider = no->chaves[position - 1];
+                    right = no->filhos[position];
+                    left = no->filhos[position - 1];
+                    ehUltimo = true;
                     position--;
                 }
-                for (int itr = position; itr < node->qtdChaves - 1; itr++)
+                for (int contador = position; contador < no->qtdChaves - 1; contador++)
                 {
-                    node->chaves[itr] = node->chaves[itr + 1];
+                    no->chaves[contador] = no->chaves[contador + 1];
                 }
-                for (int itr = position + 1; itr < node->qtdChaves; itr++)
+                for (int contador = position + 1; contador < no->qtdChaves; contador++)
                 {
-                    node->filhos[itr] = node->filhos[itr + 1];
+                    no->filhos[contador] = no->filhos[contador + 1];
                 }
-                node->qtdChaves--;
+                no->qtdChaves--;
                 left->chaves[left->qtdChaves++] = divider;
 
-                for (int itr = 0, jtr = left->qtdChaves; itr < right->qtdChaves + 1; itr++, jtr++)
+                for (int contador = 0, contadorJ = left->qtdChaves; contador < right->qtdChaves + 1; contador++, contadorJ++)
                 {
-                    if (itr < right->qtdChaves)
+                    if (contador < right->qtdChaves)
                     {
-                        left->chaves[jtr] = right->chaves[itr];
+                        left->chaves[contadorJ] = right->chaves[contador];
                     }
-                    left->filhos[jtr] = right->filhos[itr];
+                    left->filhos[contadorJ] = right->filhos[contador];
                 }
                 left->qtdChaves += right->qtdChaves;
-                if (node->qtdChaves == 0)
+                if (no->qtdChaves == 0)
                 {
-                    if (node == (*raiz))
+                    if (no == (*raiz))
                     {
-                        *raiz = node->filhos[0];
+                        *raiz = no->filhos[0];
                     }
-                    node = node->filhos[0];
+                    no = no->filhos[0];
                 }
-                BTreeDeleteKey(raiz, left, key);
+                BTreeDeleteKey(raiz, left, chave);
                 return;
             }
         }
